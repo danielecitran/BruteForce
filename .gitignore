@@ -45,6 +45,10 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # IDE files
 .vscode/
@@ -60,3 +64,16 @@ jspm_packages/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Database files (if you add any)
+*.db
+*.sqlite
+*.sqlite3

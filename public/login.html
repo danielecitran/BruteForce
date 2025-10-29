@@ -123,7 +123,24 @@
         }
 
         .captcha-container {
-            display: none; /* Captcha entfernt - nicht in CSV gefordert */
+            display: none;
+            margin-bottom: 1rem;
+        }
+        .captcha-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .captcha-box {
+            display: inline-block;
+            padding: 0.5rem 0.75rem;
+            border: 2px dashed #667eea;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            user-select: none;
+            background: #f7f8ff;
         }
 
         .hidden {
@@ -163,7 +180,16 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            <!-- Captcha entfernt - nicht in CSV gefordert -->
+            <div class="form-group captcha-container" id="captchaContainer">
+                <label for="captchaInput">CAPTCHA erforderlich:</label>
+                <div class="captcha-row">
+                    <span class="captcha-box" id="captchaText">------</span>
+                    <button type="button" class="login-btn" id="refreshCaptchaBtn" style="width:auto;padding:0.5rem 0.75rem;">
+                        Neu laden
+                    </button>
+                </div>
+                <input type="text" id="captchaInput" name="captcha" placeholder="CAPTCHA hier eingeben" autocomplete="off" style="margin-top:0.5rem;">
+            </div>
 
             <button type="submit" class="login-btn" id="loginBtn">Anmelden</button>
         </form>
@@ -181,7 +207,10 @@
         const passwordInput = document.getElementById('password');
         const loginBtn = document.getElementById('loginBtn');
         const messageDiv = document.getElementById('message');
-        // Verteidigungs-Elemente entfernt
+        const captchaContainer = document.getElementById('captchaContainer');
+        const captchaText = document.getElementById('captchaText');
+        const captchaInput = document.getElementById('captchaInput');
+        const refreshCaptchaBtn = document.getElementById('refreshCaptchaBtn');
 
         // Nachricht anzeigen
         function showMessage(text, type) {
@@ -190,7 +219,32 @@
             messageDiv.classList.remove('hidden');
         }
 
-        // Vereinfachte Funktionen - keine Verteidigungen
+        // CAPTCHA anzeigen/ausblenden
+        function showCaptchaBox(captcha) {
+            captchaText.textContent = captcha || '------';
+            captchaContainer.style.display = 'block';
+            captchaInput.value = '';
+            captchaInput.focus();
+        }
+
+        function hideCaptchaBox() {
+            captchaContainer.style.display = 'none';
+            captchaText.textContent = '------';
+            captchaInput.value = '';
+        }
+
+        async function fetchCaptcha() {
+            try {
+                const username = usernameInput.value || 'admin'; // Default für Test
+                const res = await fetch(`/generate-captcha?username=${encodeURIComponent(username)}`);
+                const data = await res.json();
+                if (data.success && data.captcha) {
+                    showCaptchaBox(data.captcha);
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
 
         // Login-Button sperren/entsperren
         function setButtonState(disabled, text = 'Anmelden') {
@@ -206,6 +260,7 @@
             
             const username = usernameInput.value;
             const password = passwordInput.value;
+            const captcha = captchaContainer.style.display !== 'none' ? captchaInput.value.trim() : undefined;
 
             // Login-Button während Verarbeitung sperren
             setButtonState(true, 'Prüfe...');
@@ -218,7 +273,8 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        password: password
+                        password: password,
+                        ...(captcha ? { captcha } : {})
                     })
                 });
 
@@ -226,8 +282,40 @@
 
                 if (data.success) {
                     showMessage(data.message, 'success');
+                    hideCaptchaBox();
                 } else {
-                    showMessage(data.message, 'error');
+                    // Prüfe verschiedene Fehlertypen
+                    if (data.type === 'account_locked' || data.type === 'account_permanently_locked') {
+                        // Account gesperrt
+                        showMessage(data.message, 'error');
+                        hideCaptchaBox();
+                    } else if (data.type === 'captcha_required' || data.type === 'captcha_error') {
+                        // CAPTCHA erforderlich oder falsch
+                        const nextCaptcha = data?.defenseInfo?.captcha?.captcha || 
+                                           data?.defenseInfo?.captcha?.newCaptcha ||
+                                           data.captcha || data.newCaptcha;
+                        if (nextCaptcha) {
+                            showCaptchaBox(nextCaptcha);
+                        } else {
+                            // Falls Captcha-String fehlt, vom Server generieren lassen
+                            await fetchCaptcha();
+                        }
+                        const msg = data.message || 'CAPTCHA erforderlich!';
+                        showMessage(msg, 'warning');
+                    } else {
+                        // Normale Fehlermeldung
+                        showMessage(data.message || 'Falsche Anmeldedaten!', 'error');
+                        
+                        // Prüfe ob CAPTCHA jetzt erforderlich ist
+                        if (data?.defenseInfo?.captcha?.required) {
+                            const nextCaptcha = data?.defenseInfo?.captcha?.captcha;
+                            if (nextCaptcha) {
+                                showCaptchaBox(nextCaptcha);
+                            } else {
+                                await fetchCaptcha();
+                            }
+                        }
+                    }
                 }
                 
                 setButtonState(false);
@@ -240,6 +328,28 @@
 
         // Event Listener
         loginForm.addEventListener('submit', handleLogin);
+        refreshCaptchaBtn.addEventListener('click', fetchCaptcha);
+
+        // Initial prüfen, ob CAPTCHA oder Lockout für diese IP/Benutzer bereits erforderlich ist
+        (async () => {
+            try {
+                const username = usernameInput.value || 'admin'; // Default für Test
+                const res = await fetch(`/defense-status?username=${encodeURIComponent(username)}`);
+                if (!res.ok) return; // Auf dem simplen Server nicht vorhanden
+                const status = await res.json();
+                if (status?.captcha?.required) {
+                    await fetchCaptcha();
+                    showMessage('CAPTCHA erforderlich!', 'warning');
+                } else if (status?.lockout?.status === 'locked' || status?.lockout?.status === 'permanently_locked') {
+                    const msg = status.lockout.status === 'permanently_locked' 
+                        ? 'Account dauerhaft gesperrt!' 
+                        : `Account gesperrt! Warten Sie ${status.lockout.remainingTime} Sekunden.`;
+                    showMessage(msg, 'error');
+                }
+            } catch (_) {
+                // ignorieren, wenn Endpoint nicht existiert (einfacher Server)
+            }
+        })();
 
         // Test-Informationen in der Konsole anzeigen
         console.log('=== BRUTE FORCE TEST CLIENT ===');

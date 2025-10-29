@@ -88,6 +88,14 @@ Für Entwicklung mit automatischem Neustart:
 npm run dev
 ```
 
+## 🗂️ Versionierung (rekonstruiert)
+
+- Interne Versionierung wurde nachgetragen. Siehe `CHANGELOG.md` mit datierten Einträgen:
+  - 2025-09-24: Easy (Angriff/Verteidigung), Basisserver
+  - 2025-10-01: Medium (CAPTCHA + Lockout)
+  - 2025-10-22: Hard (Logging, Beginn)
+  - 2025-10-29: Refactor, Umbenennungen, Middleware-Only, Startup-Hinweis
+
 ## 📋 Test-Benutzer
 
 | Benutzername | Passwort | Angriffstyp |
@@ -120,6 +128,7 @@ BruteForce/
 ├── public/
 │   └── login.html               # Frontend
 └── README.md                    # Dokumentation
+└── CHANGELOG.md                 # Änderungsverlauf (rekonstruiert ab 2025-10-29)
 ```
 
 ## 🔍 Angriffstypen im Detail
