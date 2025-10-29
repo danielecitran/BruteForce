@@ -2,7 +2,7 @@
  * Filename: server.js
  * Kurzbeschreibung: Express-Server mit umschaltbaren Verteidigungsmodi (ungeschützt, easy, medium, hard, all).
  * Aufrufparameter: keine (Start: npm start). Nutzung über Routen /, /easy, /medium, /hard, /all.
- * Autor: Student
+ * Autor: Theodor Schneider, Oliver Piechocki, Daniele Zitran
  * Datum: 2025-10-29
  */
 const express = require('express');

@@ -2,7 +2,7 @@
  * Filename: counterBruteForceAttackMedium.js
  * Kurzbeschreibung: CAPTCHA-Anforderung und Account-Lockout basierend auf Fehlversuchen.
  * Aufrufparameter: keine (über server.js als Middleware genutzt; Modus /medium oder /all).
- * Autor: Student
+ * Autor: Theodor Schneider, Oliver Piechocki, Daniele Zitran
  * Datum: 2025-10-29
  */
 

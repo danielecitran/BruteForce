@@ -6,10 +6,7 @@ Alle relevanten Änderungen an diesem Projekt werden in diesem Dokument festgeha
 ## 2025-10-29
 
 ### Added
-- Defense auf Middleware-Only umgestellt und zentral über `server.js` aktivierbar (Routen: `/`, `/easy`, `/medium`, `/hard`, `/all`).
-- 4.2.1 Easy: Lineares Rate Limiting mit steigender Wartezeit pro Fehlversuch (`counterBruteForceAttackEasy.js`).
-- 4.2.2 Medium: CAPTCHA-Anforderung und Account-Lockout (`counterBruteForceAttackMedium.js`).
-- 4.2.4 Hard: Logging von Login-Versuchen in `logs/security.log` (`counterBruteForceAttackHard.js`).
+- 4.2.3 Hard: Logging von Login-Versuchen in `logs/security.log` (`counterBruteForceAttackHard.js`).
 - Startup-Hinweis im Server-Log zur Moduswahl.
 
 ### Changed
@@ -20,7 +17,7 @@ Alle relevanten Änderungen an diesem Projekt werden in diesem Dokument festgeha
 ## 2025-10-22
 
 ### Added
-- Hard-Verteidigung: Logging von Login-Versuchen (Beginn der 4.2.4-Umsetzung).
+- Hard-Verteidigung: Logging von Login-Versuchen (Beginn der 4.2.3-Umsetzung).
 - Log-Datei `logs/security.log` eingeführt.
 
 ### Changed
@@ -32,6 +29,7 @@ Alle relevanten Änderungen an diesem Projekt werden in diesem Dokument festgeha
 ### Added
 - Medium-Verteidigung: CAPTCHA-Anforderung nach mehreren Fehlversuchen.
 - Account-Lockout bei zu vielen Fehlversuchen (zeitbasiert/permanent je nach Schwellenwert).
+- Medium und Hard Attacks implementiert.
 
 ### Changed
 - Client: CAPTCHA-Eingabe-Feld und Aktualisierungsschaltfläche vorbereitet.

@@ -2,7 +2,7 @@
  * Filename: counterBruteForceAttackEasy.js
  * Kurzbeschreibung: Rate-Limiting mit linear ansteigender Wartezeit pro Fehlversuch.
  * Aufrufparameter: keine (über server.js als Middleware genutzt; Modus /easy oder /all).
- * Autor: Student
+ * Autor: Theodor Schneider, Oliver Piechocki, Daniele Zitran
  * Datum: 2025-10-29
  */
 

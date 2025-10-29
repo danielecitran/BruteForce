@@ -15,7 +15,7 @@ npm start
 ```
 
 ### 3) Browser öffnen und Modus wählen
-Rufe `http://localhost:3000` auf. Über folgende Routen stellst du den Verteidigungsmodus ein (per Cookie):
+Rufe `http://localhost:3000` auf. Über folgende Routen stellst du den Verteidigungsmodus ein:
 
 - `/` – ungeschützt (keine Verteidigung)
 - `/easy` – 4.2.1 Rate Limiting (progressive Delays)
