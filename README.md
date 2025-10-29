@@ -20,7 +20,7 @@ Rufe `http://localhost:3000` auf. Über folgende Routen stellst du den Verteidig
 - `/` – ungeschützt (keine Verteidigung)
 - `/easy` – 4.2.1 Rate Limiting (progressive Delays)
 - `/medium` – 4.2.2 Kombination: CAPTCHA + Account Lockout
-- `/hard` – 4.2.4 Logging & Monitoring
+- `/hard` – 4.2.3 Logging & Monitoring
 - `/all` – alle Verteidigungen gleichzeitig
 
 Der Login-Endpoint bleibt in allen Modi gleich: `POST /login`.

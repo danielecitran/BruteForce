@@ -172,7 +172,7 @@ app.listen(PORT, () => {
     console.log('  GET  /        - ungeschützt');
     console.log('  GET  /easy    - 4.2.1 Rate Limiting');
     console.log('  GET  /medium  - 4.2.2 CAPTCHA + Lockout');
-    console.log('  GET  /hard    - 4.2.4 Logging');
+    console.log('  GET  /hard    - 4.2.3 Logging');
     console.log('  GET  /all     - alle Verteidigungen');
     console.log('  POST /login   - Login (modusabhängig)');
     console.log('\nHinweis: Modus durch Aufruf von /, /easy, /medium, /hard oder /all setzen.');
