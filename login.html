@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brute Force Test - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .attempt-counter {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .captcha-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .captcha-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+            letter-spacing: 3px;
+        }
+
+        .captcha-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .delay-indicator {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 Login System</h1>
+            <p>Brute Force Test Umgebung</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Benutzername:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Passwort:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div id="captchaContainer" class="captcha-container hidden">
+                <div class="captcha-text" id="captchaText"></div>
+                <input type="text" id="captchaInput" class="captcha-input" placeholder="Captcha eingeben">
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">Anmelden</button>
+        </form>
+
+        <div id="message" class="message hidden"></div>
+        <div id="attemptCounter" class="attempt-counter hidden"></div>
+        <div id="delayIndicator" class="delay-indicator hidden"></div>
+    </div>
+
+    <script>
+        // Konfiguration für verschiedene Test-Szenarien
+        const config = {
+            // Test-Benutzer für verschiedene Angriffe
+            testUsers: {
+                'admin': 'admin123',
+                'user': 'password',
+                'test': 'test123',
+                'demo': 'demo456'
+            },
+            
+            // Verteidigungsmaßnahmen
+            defense: {
+                maxAttempts: 5,
+                delayTime: 2000, // 2 Sekunden
+                progressiveDelay: true,
+                captchaAfterAttempts: 3,
+                logging: true
+            },
+            
+            // Aktuelle Versuche
+            attempts: 0,
+            lockedUntil: null
+        };
+
+        // DOM Elemente
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const messageDiv = document.getElementById('message');
+        const attemptCounter = document.getElementById('attemptCounter');
+        const captchaContainer = document.getElementById('captchaContainer');
+        const captchaText = document.getElementById('captchaText');
+        const captchaInput = document.getElementById('captchaInput');
+        const delayIndicator = document.getElementById('delayIndicator');
+
+        // Captcha generieren
+        function generateCaptcha() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        let currentCaptcha = '';
+
+        // Nachricht anzeigen
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.classList.remove('hidden');
+        }
+
+        // Versuche-Zähler aktualisieren
+        function updateAttemptCounter() {
+            attemptCounter.textContent = `Versuche: ${config.attempts}/${config.defense.maxAttempts}`;
+            attemptCounter.classList.remove('hidden');
+        }
+
+        // Delay anzeigen
+        function showDelay(seconds) {
+            delayIndicator.textContent = `Warten Sie ${seconds} Sekunden...`;
+            delayIndicator.classList.remove('hidden');
+            
+            let countdown = seconds;
+            const interval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    delayIndicator.textContent = `Warten Sie ${countdown} Sekunden...`;
+                } else {
+                    delayIndicator.classList.add('hidden');
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        // Login-Button sperren/entsperren
+        function setButtonState(disabled, text = 'Anmelden') {
+            loginBtn.disabled = disabled;
+            loginBtn.textContent = text;
+        }
+
+        // Captcha anzeigen
+        function showCaptcha() {
+            currentCaptcha = generateCaptcha();
+            captchaText.textContent = currentCaptcha;
+            captchaContainer.classList.remove('hidden');
+            captchaInput.focus();
+        }
+
+        // Captcha verstecken
+        function hideCaptcha() {
+            captchaContainer.classList.add('hidden');
+            captchaInput.value = '';
+        }
+
+        // Login-Verarbeitung
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            const captcha = captchaInput.value;
+
+            // Prüfen ob Account gesperrt ist
+            if (config.lockedUntil && Date.now() < config.lockedUntil) {
+                const remainingTime = Math.ceil((config.lockedUntil - Date.now()) / 1000);
+                showMessage(`Account gesperrt! Noch ${remainingTime} Sekunden warten.`, 'error');
+                return;
+            }
+
+            // Captcha prüfen falls erforderlich
+            if (captchaContainer.classList.contains('hidden') === false) {
+                if (captcha !== currentCaptcha) {
+                    showMessage('Captcha falsch!', 'error');
+                    config.attempts++;
+                    updateAttemptCounter();
+                    showCaptcha(); // Neues Captcha generieren
+                    return;
+                }
+            }
+
+            // Login-Button während Verarbeitung sperren
+            setButtonState(true, 'Prüfe...');
+
+            // Simuliere Server-Delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Credentials prüfen
+            if (config.testUsers[username] === password) {
+                showMessage('Erfolgreich angemeldet!', 'success');
+                config.attempts = 0;
+                hideCaptcha();
+                attemptCounter.classList.add('hidden');
+                
+                // Logging
+                if (config.defense.logging) {
+                    console.log(`[LOGIN SUCCESS] ${new Date().toISOString()} - User: ${username}`);
+                }
+            } else {
+                config.attempts++;
+                updateAttemptCounter();
+                
+                // Logging
+                if (config.defense.logging) {
+                    console.log(`[LOGIN FAILED] ${new Date().toISOString()} - User: ${username} - Attempt: ${config.attempts}`);
+                }
+
+                // Verteidigungsmaßnahmen
+                if (config.attempts >= config.defense.maxAttempts) {
+                    // Account sperren
+                    const lockTime = config.defense.progressiveDelay ? 
+                        config.attempts * config.defense.delayTime * 1000 : 
+                        config.defense.delayTime * 1000;
+                    
+                    config.lockedUntil = Date.now() + lockTime;
+                    showMessage(`Zu viele Versuche! Account für ${Math.ceil(lockTime/1000)} Sekunden gesperrt.`, 'error');
+                    setButtonState(true, 'Account gesperrt');
+                    
+                    setTimeout(() => {
+                        config.attempts = 0;
+                        config.lockedUntil = null;
+                        setButtonState(false);
+                        attemptCounter.classList.add('hidden');
+                        hideCaptcha();
+                        showMessage('Account entsperrt. Versuchen Sie es erneut.', 'warning');
+                    }, lockTime);
+                } else {
+                    // Captcha nach bestimmten Versuchen
+                    if (config.attempts >= config.defense.captchaAfterAttempts) {
+                        showCaptcha();
+                    }
+
+                    // Delay vor nächstem Versuch
+                    const delaySeconds = config.defense.progressiveDelay ? 
+                        config.attempts * (config.defense.delayTime / 1000) : 
+                        (config.defense.delayTime / 1000);
+                    
+                    showMessage('Falsche Anmeldedaten!', 'error');
+                    showDelay(delaySeconds);
+                    
+                    setTimeout(() => {
+                        setButtonState(false);
+                        delayIndicator.classList.add('hidden');
+                    }, delaySeconds * 1000);
+                }
+            }
+        }
+
+        // Event Listener
+        loginForm.addEventListener('submit', handleLogin);
+
+        // Test-Informationen in der Konsole anzeigen
+        console.log('=== BRUTE FORCE TEST UMWELT ===');
+        console.log('Test-Benutzer:');
+        Object.keys(config.testUsers).forEach(user => {
+            console.log(`  ${user}: ${config.testUsers[user]}`);
+        });
+        console.log('\nVerteidigungsmaßnahmen:');
+        console.log(`  Max. Versuche: ${config.defense.maxAttempts}`);
+        console.log(`  Delay: ${config.defense.delayTime}ms`);
+        console.log(`  Progressive Delay: ${config.defense.progressiveDelay}`);
+        console.log(`  Captcha nach: ${config.defense.captchaAfterAttempts} Versuchen`);
+        console.log(`  Logging: ${config.defense.logging}`);
+    </script>
+</body>
+</html>
