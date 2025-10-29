@@ -1,7 +1,10 @@
 /*
- * Dateiname: startBruteForceAttack.js
- * Kurzbeschreibung: Brute-Force-Angriff - 4.1.1 und 4.1.2
- * Aufrufparameter: node startBruteForceAttack.js [username]
+ * Filename: startBruteForceAttack.js
+ * Kurzbeschreibung: CLI-Skript zum Ausführen verschiedener Brute-Force-Angriffe gegen POST /login.
+ * Aufrufparameter: node startBruteForceAttack.js [username] [attackType] [maxLength]
+ * Angriffstypen: all | rainbow | parallel | dictionary | mono | poly
+ * Autor: Theodor Schneider, Oliver Piechocki, Daniele Zitran
+ * Datum: 2025-10-29
  */
 
 const axios = require('axios');
